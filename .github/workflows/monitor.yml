@@ -1,0 +1,42 @@
+name: LOF Monitor Schedule
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run monitor
+        env:
+          DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
+          DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
+          PREMIUM_THRESHOLD: ${{ vars.PREMIUM_THRESHOLD }}
+          DISCOUNT_THRESHOLD: ${{ vars.DISCOUNT_THRESHOLD }}
+        run: python main.py --run-once
+
+      - name: Commit and push if config changed
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add config.json alerts.log
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update monitor status [skip ci]" && git push)
