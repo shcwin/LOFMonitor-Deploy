@@ -2,8 +2,8 @@ name: LOF Monitor Schedule
 
 on:
   schedule:
-    - cron: '13 1 * * *'
-    - cron: '13 5 * * *'
+    - cron: '13 0 * * *'
+    - cron: '13 4 * * *'
   workflow_dispatch:
 
 permissions:
